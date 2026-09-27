@@ -19,6 +19,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/warehouse.sql:/docker-entrypoint-initdb.d/warehouse.sql
 
   kafka:
     image: apache/kafka:3.9.0
