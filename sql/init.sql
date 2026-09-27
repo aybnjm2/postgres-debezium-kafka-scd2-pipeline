@@ -21,3 +21,8 @@ CREATE TABLE transactions (
     amount       NUMERIC(14,2) NOT NULL,   -- negative = withdrawal
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ces lignes sont necessaires pour que Debezium puisse capturer les changements de ces tables - PROBELM (before:null)
+ALTER TABLE customers REPLICA IDENTITY FULL;
+ALTER TABLE accounts REPLICA IDENTITY FULL;
+ALTER TABLE transactions REPLICA IDENTITY FULL;
