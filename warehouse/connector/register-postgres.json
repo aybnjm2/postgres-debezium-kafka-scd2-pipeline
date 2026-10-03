@@ -1,0 +1,22 @@
+{
+  "name": "bank-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",    
+    "database.port": "5432",
+    "database.user": "bank",
+    "database.password": "bank",
+    "database.dbname": "bank",
+    "topic.prefix": "bank",
+    "table.include.list": "public.customers,public.accounts,public.transactions",
+    "plugin.name": "pgoutput",
+    "publication.autocreate.mode": "filtered",
+    "slot.name": "debezium_bank",
+    "snapshot.mode": "initial",
+    "tombstones.on.delete": "false",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+  }
+}
