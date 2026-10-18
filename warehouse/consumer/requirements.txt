@@ -1,1 +1,4 @@
 confluent-kafka
+confluent-kafka[avro]
+psycopg2
+faker
