@@ -22,7 +22,7 @@ CREATE TABLE transactions (
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ces lignes sont necessaires pour que Debezium puisse capturer les changements de ces tables - PROBELM (before:null)
+-- ces lignes sont necessaires pour que Debezium puisse capturer les changements de ces tables - PROBELM (before:null) - inconvenient lots of I/O ops and too much data is written on WAL
 ALTER TABLE customers REPLICA IDENTITY FULL;
 ALTER TABLE accounts REPLICA IDENTITY FULL;
 ALTER TABLE transactions REPLICA IDENTITY FULL;
