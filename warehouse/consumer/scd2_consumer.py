@@ -2,6 +2,9 @@ import json
 from datetime import datetime, timezone
 import psycopg2
 from confluent_kafka import Consumer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroDeserializer
+from confluent_kafka import DeserializingConsumer
 
 WAREHOUSE_CONN = dict(
     host="localhost", port=5432, dbname="bank", user="bank", password="bank"
@@ -39,8 +42,7 @@ def upsert_scd2_customer(before, after, op, lsn, event_ts):
         close_current_row("dim_customers", "customer_id", before["customer_id"], lsn, event_ts)
         return
 
-    cid = after["customer_id"]
-    # idempotence si on a deja une ligne courante avec un LSN >= a celui ci on ignore
+    cid = after["customer_id"] # idempotence si on a deja une ligne courante avec un LSN >= a celui ci on ignore
     cur.execute(
         "SELECT source_lsn FROM warehouse.dim_customers WHERE customer_id=%s AND is_current=true",
         (cid,),
@@ -114,14 +116,18 @@ def handle_message(topic, payload):
 
 
 def main():
-    consumer = Consumer({
+    schema_registry_client = SchemaRegistryClient({"url": "http://localhost:8081"})
+    avro_deserializer = AvroDeserializer(schema_registry_client)
+
+    consumer = DeserializingConsumer({
         "bootstrap.servers": "localhost:9092",
         "group.id": "scd2-warehouse-loader",
         "auto.offset.reset": "earliest",
-        "enable.auto.commit": False,  # on commit manuellement apres ecriture en base
+        "enable.auto.commit": False,
+        "value.deserializer": avro_deserializer,
     })
     consumer.subscribe(TOPICS)
-    print("Consumer SCD2 demarre... Ctrl+C pour arrêter")
+    print("Consumer SCD2 demarre...")
 
     try:
         while True:
@@ -132,7 +138,7 @@ def main():
                 print("ERREUR:", msg.error())
                 continue
 
-            payload = json.loads(msg.value())
+            payload = msg.value()   # decoded to dictionary by AvroDeserializer
             try:
                 handle_message(msg.topic(), payload)
                 conn.commit()
